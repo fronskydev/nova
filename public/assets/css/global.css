@@ -1,0 +1,42 @@
+.navbar-toggler {
+    border-color: transparent;
+}
+
+.navbar-toggler:focus {
+    box-shadow: none;
+}
+
+.default-rounded {
+    border-radius: 0.75rem !important;
+}
+
+[data-bs-theme=light] {
+    .header-border {
+        border-bottom: 2px solid #e9ecef;
+    }
+    .footer-border {
+        border-top: 2px solid #e9ecef;
+    }
+}
+[data-bs-theme=dark] {
+    .header-border {
+        border-bottom: 2px solid #343a40;
+    }
+    .footer-border {
+        border-top: 2px solid #343a40;
+    }
+}
+
+.dropdown-item-hover:hover {
+    background-color: transparent !important;
+}
+
+.btn:focus-visible {
+    outline: none !important;
+}
+
+[data-bs-theme=dark] {
+    .white-image-dark {
+        filter: brightness(0) invert(1);
+    }
+}

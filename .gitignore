@@ -1,0 +1,14 @@
+vendor/
+.idea/
+.vscode/
+.env
+*.log
+*.swp
+*.swo
+*.bak
+*.tmp
+composer.phar
+composer.lock
+.DS_Store
+Thumbs.db
+cache/
