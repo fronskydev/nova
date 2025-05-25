@@ -241,3 +241,60 @@ function generateRandomString(int $length): string
 
     return $randomString;
 }
+
+/**
+ * Formats a given timestamp into a human-readable date string.
+ *
+ * @param string $timestamp The timestamp to format, in a string format that can be parsed by `strtotime`.
+ * @return string The formatted date string in "dd-MM-yyyy" format.
+ */
+function getFormattedDate(string $timestamp): string
+{
+    $formatter = new IntlDateFormatter(
+        $_ENV["LOCALE"],
+        IntlDateFormatter::FULL,
+        IntlDateFormatter::NONE,
+        $_ENV["TIMEZONE"] ?? "Europe/Paris",
+        IntlDateFormatter::GREGORIAN,
+        "dd-MM-yyyy"
+    );
+    return mb_convert_case($formatter->format(strtotime($timestamp)), MB_CASE_TITLE, "UTF-8");
+}
+
+/**
+ * Formats a given timestamp into a human-readable text date string.
+ *
+ * @param string $timestamp The timestamp to format, in a string format that can be parsed by `strtotime`.
+ * @return string The formatted date string in "EEEE dd MMMM yyyy" format.
+ */
+function getFormattedTextLongDate(string $timestamp): string
+{
+    $formatter = new IntlDateFormatter(
+        $_ENV["LOCALE"],
+        IntlDateFormatter::FULL,
+        IntlDateFormatter::NONE,
+        $_ENV["TIMEZONE"] ?? "Europe/Paris",
+        IntlDateFormatter::GREGORIAN,
+        "EEEE dd MMMM yyyy"
+    );
+    return mb_convert_case($formatter->format(strtotime($timestamp)), MB_CASE_TITLE, "UTF-8");
+}
+
+/**
+ * Formats a given timestamp into a human-readable text date string.
+ *
+ * @param string $timestamp The timestamp to format, in a string format that can be parsed by `strtotime`.
+ * @return string The formatted date string in "EEEE dd MMMM yyyy" format.
+ */
+function getFormattedTextShortDate(string $timestamp): string
+{
+    $formatter = new IntlDateFormatter(
+        $_ENV["LOCALE"],
+        IntlDateFormatter::FULL,
+        IntlDateFormatter::NONE,
+        $_ENV["TIMEZONE"] ?? "Europe/Paris",
+        IntlDateFormatter::GREGORIAN,
+        "dd MMMM yyyy"
+    );
+    return mb_convert_case($formatter->format(strtotime($timestamp)), MB_CASE_TITLE, "UTF-8");
+}
