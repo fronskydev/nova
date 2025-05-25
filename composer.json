@@ -1,0 +1,26 @@
+{
+  "name": "fronskydev/nova",
+  "description": "A lightweight PHP framework built for modern web applications.",
+  "type": "project",
+  "require": {
+    "php": ">=8.3",
+    "vlucas/phpdotenv": "^5.6.1",
+    "phpmailer/phpmailer": "^6.9.3",
+    "doctrine/dbal": "^4.2.2",
+    "ext-curl": "*",
+    "ext-openssl": "*"
+  },
+  "require-dev": {
+    "roave/security-advisories": "dev-latest"
+  },
+  "license": "MIT",
+  "minimum-stability": "stable",
+  "autoload": {
+    "psr-4": {
+      "src\\": "secure/src/"
+    }
+  },
+  "config": {
+    "vendor-dir": "secure/vendor"
+  }
+}
