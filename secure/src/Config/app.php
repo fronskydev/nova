@@ -2,6 +2,7 @@
 
 $timeZone = $_ENV["TIMEZONE"] ?? "Europe/Paris";
 date_default_timezone_set($timeZone);
+setlocale(LC_ALL, $_ENV["LOCALE"].".UTF-8");
 
 $isSecure = isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] === "on";
 error_reporting(E_ALL);
