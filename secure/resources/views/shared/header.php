@@ -35,11 +35,11 @@
                     <?php if (IS_MOBILE) { ?>
                         <hr style="margin: 0.25rem 0;">
                         <li class="nav-item mb-2 mt-2">
-                            <a class="p-2 default-rounded" aria-current="page" target="_blank" href="https://gitlab.com/fronsky-development/nova" style="margin-right: 0.5rem;color:var(--bs-nav-link-color);"><i class="bi bi-gitlab"></i></a>
+                            <a class="p-2 default-rounded" aria-current="page" target="_blank" href="https://github.com/fronskydev/nova/releases" style="margin-right: 0.5rem;color:var(--bs-nav-link-color);"><i class="bi bi-github"></i></a>
                         </li>
                     <?php } else { ?>
                         <li class="nav-item">
-                            <a class="nav-link p-2 default-rounded" aria-current="page" target="_blank" href="https://gitlab.com/fronsky-development/nova" style="margin-right: 0.8rem;"><i class="bi bi-gitlab"></i></a>
+                            <a class="nav-link p-2 default-rounded" aria-current="page" target="_blank" href="https://github.com/fronskydev/nova/releases" style="margin-right: 0.8rem;"><i class="bi bi-github"></i></a>
                         </li>
                     <?php } ?>
                 </ul>
