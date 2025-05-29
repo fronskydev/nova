@@ -38,7 +38,7 @@ abstract class Model
                 ->insert($this->table, $data)
                 ->execute();
             $this->lastInsertedId = $this->queryBuilder->getLastInsertedId();
-        } catch (Exception | InvalidArgumentException) {}
+        } catch (Exception) {}
     }
 
     /**
@@ -60,7 +60,7 @@ abstract class Model
                 return array();
             }
             return $result[0];
-        } catch (Exception | InvalidArgumentException) {
+        } catch (Exception) {
             return array();
         }
     }
@@ -80,7 +80,7 @@ abstract class Model
                 ->select($this->table)
                 ->where($column, "=", $value)
                 ->execute();
-        } catch (Exception | InvalidArgumentException) {
+        } catch (Exception) {
             return array();
         }
     }
@@ -100,7 +100,7 @@ abstract class Model
                 ->update($this->table, $data)
                 ->where("id", "=", $id)
                 ->execute();
-        } catch (Exception | InvalidArgumentException) {}
+        } catch (Exception) {}
     }
 
     /**
@@ -119,7 +119,7 @@ abstract class Model
                 ->update($this->table, $data)
                 ->where($column, "=", $value)
                 ->execute();
-        } catch (Exception | InvalidArgumentException) {}
+        } catch (Exception) {}
     }
 
     /**
@@ -135,7 +135,7 @@ abstract class Model
                 ->delete($this->table)
                 ->where("id", "=", $id)
                 ->execute();
-        } catch (Exception | InvalidArgumentException) {}
+        } catch (Exception) {}
     }
 
     /**
@@ -152,7 +152,7 @@ abstract class Model
                 ->delete($this->table)
                 ->where($column, "=", $value)
                 ->execute();
-        } catch (Exception | InvalidArgumentException) {}
+        } catch (Exception) {}
     }
 
     /**
@@ -167,7 +167,7 @@ abstract class Model
             return $this->queryBuilder
                 ->select($this->table)
                 ->execute();
-        } catch (Exception | InvalidArgumentException) {
+        } catch (Exception) {
             return array();
         }
     }
@@ -185,7 +185,7 @@ abstract class Model
             return $this->queryBuilder
                 ->raw($query)
                 ->execute();
-        } catch (Exception | InvalidArgumentException) {
+        } catch (Exception) {
             return array();
         }
     }

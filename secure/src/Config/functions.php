@@ -144,79 +144,137 @@ function getCookieValue(string $name): mixed
 }
 
 /**
- * Encrypts a text using a simple XOR-based encryption with a given key.
+ * Encrypts a given plaintext string using AES-256-CBC encryption.
  *
- * @param string $text The plaintext text to be encrypted.
- * @return string The encrypted and base64-encoded result.
+ * @param string $text The plaintext string to be encrypted.
+ * @param string $fieldKey An optional field-specific key to derive the encryption and HMAC keys.
+ *                         Defaults to an empty string.
+ * @return string The base64-encoded encrypted string, including the IV and HMAC.
  */
-function encryptText(string $text): string
+function encryptText(string $text, string $fieldKey = ""): string
 {
-    $key = $_ENV["TXT_ENCRYPTION_KEY"];
-    $encryptedText = "";
-    $textLength = strlen($text);
+    $baseKey = $_ENV["TXT_ENCRYPTION_KEY"];
+    $encryptionKey = hash("sha256", $baseKey . $fieldKey, true);
+    $hmacKey = hash("sha256", $baseKey . $fieldKey . "_hmac", true);
 
-    for ($i = 0; $i < $textLength; $i++) {
-        $encryptedText .= chr(ord($text[$i]) ^ ord($key[$i % strlen($key)]));
+    $iv = random_bytes(16);
+    $ciphertext = openssl_encrypt($text, "aes-256-cbc", $encryptionKey, OPENSSL_RAW_DATA, $iv);
+
+    if ($ciphertext === false) {
+        return "Encryption failed";
     }
 
-    return base64_encode($encryptedText);
+    $hmac = hash_hmac("sha256", $iv . $ciphertext, $hmacKey, true);
+
+    return base64_encode($iv . $ciphertext . $hmac);
 }
 
 /**
- * Decrypts an encrypted text using a simple XOR-based decryption with a given key.
+ * Decrypts a base64-encoded encrypted string using AES-256-CBC decryption.
  *
- * @param string $encryptedText The encrypted text to be decrypted (base64-encoded).
- * @return string The decrypted plaintext result.
+ * @param string $encodedData The base64-encoded encrypted string to decrypt.
+ * @param string $fieldKey An optional field-specific key to derive the encryption and HMAC keys.
+ *                         Defaults to an empty string.
+ * @return string The decrypted plaintext string. Returns an error message if decryption fails
+ *                or if the data integrity check fails.
  */
-function decryptText(string $encryptedText): string
+function decryptText(string $encodedData, string $fieldKey = ""): string
 {
-    $key = $_ENV["TXT_ENCRYPTION_KEY"];
-    $encryptedText = base64_decode($encryptedText);
-    $decryptedText = "";
-    $textLength = strlen($encryptedText);
+    $baseKey = $_ENV["TXT_ENCRYPTION_KEY"];
+    $encryptionKey = hash("sha256", $baseKey . $fieldKey, true);
+    $hmacKey = hash("sha256", $baseKey . $fieldKey . "_hmac", true);
 
-    for ($i = 0; $i < $textLength; $i++) {
-        $decryptedText .= chr(ord($encryptedText[$i]) ^ ord($key[$i % strlen($key)]));
+    $data = base64_decode($encodedData, true);
+    if ($data === false || strlen($data) < 48) {
+        return "Incorrectly formatted or too short encrypted data";
     }
 
-    return $decryptedText;
+    $iv = substr($data, 0, 16);
+    $hmac = substr($data, -32);
+    $ciphertext = substr($data, 16, -32);
+
+    $calculatedHmac = hash_hmac("sha256", $iv . $ciphertext, $hmacKey, true);
+    if (!hash_equals($hmac, $calculatedHmac)) {
+        return "Data integrity check failed – data may have been tampered with";
+    }
+
+    $plaintext = openssl_decrypt($ciphertext, "aes-256-cbc", $encryptionKey, OPENSSL_RAW_DATA, $iv);
+    if ($plaintext === false) {
+        return "Decryption failed";
+    }
+
+    return $plaintext;
 }
 
 /**
- * Encrypts data using AES-256-CBC encryption.
+ * Encrypts an array of data using AES-256-CBC encryption.
  *
  * @param array $data The data to be encrypted.
- * @return string The encrypted result.
- * @throws RandomException If generating random bytes for the IV fails.
+ * @param string $fieldKey An optional field-specific key to derive the encryption and HMAC keys.
+ *                         Defaults to an empty string.
+ * @return string The base64-encoded encrypted string, including the IV and HMAC.
  */
-function encryptData(array $data): string
+function encryptData(array $data, string $fieldKey = ""): string
 {
-    $key = $_ENV["ARR_ENCRYPTION_KEY"];
-    $iv = random_bytes(openssl_cipher_iv_length("aes-256-cbc"));
-    $serialized_data = serialize($data);
-    $encrypted_data = openssl_encrypt($serialized_data, "aes-256-cbc", $key, 0, $iv);
-    if ($encrypted_data === false) {
-        $error_data = ['error' => 'Encryption failed'];
-        return base64_encode(random_bytes(openssl_cipher_iv_length('aes-256-cbc')) . openssl_encrypt(serialize($error_data), "aes-256-cbc", $key, 0, $iv));
+    $baseKey = $_ENV["ARR_ENCRYPTION_KEY"];
+    $encryptionKey = hash('sha256', $baseKey . $fieldKey, true);
+    $hmacKey = hash('sha256', $baseKey . $fieldKey . '_hmac', true);
+
+    $ivLength = openssl_cipher_iv_length("aes-256-cbc");
+    $iv = random_bytes($ivLength);
+
+    $serialized = serialize($data);
+    $ciphertext = openssl_encrypt($serialized, "aes-256-cbc", $encryptionKey, OPENSSL_RAW_DATA, $iv);
+
+    if ($ciphertext === false) {
+        return "Encryption failed";
     }
-    return base64_encode($iv . $encrypted_data);
+
+    $hmac = hash_hmac('sha256', $iv . $ciphertext, $hmacKey, true);
+
+    return base64_encode($iv . $ciphertext . $hmac);
 }
 
 /**
- * Decrypts previously encrypted data using AES-256-CBC decryption.
+ * Decrypts a base64-encoded encrypted string using AES-256-CBC decryption.
  *
- * @param string $encrypted_data The encrypted data to be decrypted.
- * @return mixed The decrypted and serialized data.
+ * @param string $input The base64-encoded encrypted string to decrypt.
+ * @param string $fieldKey An optional field-specific key to derive the encryption and HMAC keys.
+ *                         Defaults to an empty string.
+ * @return mixed The decrypted and unserialized data. Returns an error message if decryption fails
+ *               or if the data integrity check fails.
  */
-function decryptData(string $encrypted_data): mixed
+function decryptData(string $input, string $fieldKey = ""): mixed
 {
-    $key = $_ENV["ARR_ENCRYPTION_KEY"];
-    $data = base64_decode($encrypted_data);
-    $iv_length = openssl_cipher_iv_length("aes-256-cbc");
-    $iv = substr($data, 0, $iv_length);
-    $encrypted_data = substr($data, $iv_length);
-    $decrypted_data = openssl_decrypt($encrypted_data, "aes-256-cbc", $key, 0, $iv);
-    return unserialize($decrypted_data, ["allowed_classes" => false]);
+    $baseKey = $_ENV["ARR_ENCRYPTION_KEY"];
+    $encryptionKey = hash('sha256', $baseKey . $fieldKey, true);
+    $hmacKey = hash('sha256', $baseKey . $fieldKey . '_hmac', true);
+
+    $data = base64_decode($input, true);
+    if ($data === false) {
+        return "Incorrectly formatted encrypted data";
+    }
+
+    $ivLength = openssl_cipher_iv_length("aes-256-cbc");
+    if (strlen($data) <= $ivLength + 32) {
+        return "Incorrectly formatted or too short encrypted data";
+    }
+
+    $iv = substr($data, 0, $ivLength);
+    $hmac = substr($data, -32);
+    $ciphertext = substr($data, $ivLength, -32);
+
+    $calculatedHmac = hash_hmac('sha256', $iv . $ciphertext, $hmacKey, true);
+    if (!hash_equals($hmac, $calculatedHmac)) {
+        return "Data integrity check failed – data may have been tampered with";
+    }
+
+    $decrypted = openssl_decrypt($ciphertext, "aes-256-cbc", $encryptionKey, OPENSSL_RAW_DATA, $iv);
+    if ($decrypted === false) {
+        return "Decryption failed";
+    }
+
+    return unserialize($decrypted, ["allowed_classes" => false]);
 }
 
 /**
@@ -254,7 +312,7 @@ function getFormattedDate(string $timestamp): string
         $_ENV["LOCALE"],
         IntlDateFormatter::FULL,
         IntlDateFormatter::NONE,
-        $_ENV["TIMEZONE"] ?? "Europe/Paris",
+        $_ENV["TIMEZONE"],
         IntlDateFormatter::GREGORIAN,
         "dd-MM-yyyy"
     );
@@ -273,7 +331,7 @@ function getFormattedTextLongDate(string $timestamp): string
         $_ENV["LOCALE"],
         IntlDateFormatter::FULL,
         IntlDateFormatter::NONE,
-        $_ENV["TIMEZONE"] ?? "Europe/Paris",
+        $_ENV["TIMEZONE"],
         IntlDateFormatter::GREGORIAN,
         "EEEE dd MMMM yyyy"
     );
@@ -292,7 +350,7 @@ function getFormattedTextShortDate(string $timestamp): string
         $_ENV["LOCALE"],
         IntlDateFormatter::FULL,
         IntlDateFormatter::NONE,
-        $_ENV["TIMEZONE"] ?? "Europe/Paris",
+        $_ENV["TIMEZONE"],
         IntlDateFormatter::GREGORIAN,
         "dd MMMM yyyy"
     );
